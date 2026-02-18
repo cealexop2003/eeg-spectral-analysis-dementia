@@ -262,20 +262,24 @@ def main():
     print(f"  Saved: spectrum_linear_magnitude.png")
     
     # =========================================================================
-    # 8. SPECTRAL PLOTS - dB MAGNITUDE
+    # 8. SPECTRAL PLOTS - dB MAGNITUDE (ZOOMED 8-12 Hz)
     # =========================================================================
-    print("\nGenerating dB magnitude spectrum plots...")
+    print("\nGenerating dB magnitude spectrum plots (zoomed 8-12 Hz)...")
     
     fig, axes = plt.subplots(2, 1, figsize=(14, 10))
-    fig.suptitle('dB Magnitude Spectra: Effect of Windowing on Spectral Leakage', 
+    fig.suptitle('dB Magnitude Spectra: Effect of Windowing on Spectral Leakage (Zoomed 8-12 Hz)', 
                  fontsize=14, fontweight='bold')
+    
+    # Frequency range for dB plots (zoomed)
+    f_min_db = 8
+    f_max_db = 12
     
     # Signal x1 (perfect periodicity)
     ax = axes[0]
     for window in window_types:
         f = results['x1'][window]['f']
         mag_db = results['x1'][window]['magnitude_db']
-        mask = f <= f_max
+        mask = (f >= f_min_db) & (f <= f_max_db)
         ax.plot(f[mask], mag_db[mask], label=window.capitalize(), linewidth=1.5, alpha=0.8)
     
     ax.set_xlabel('Frequency (Hz)', fontsize=11)
@@ -284,6 +288,7 @@ def main():
     ax.grid(True, alpha=0.3)
     ax.legend(loc='upper right')
     ax.axvline(f1, color='black', linestyle='--', alpha=0.5, linewidth=1)
+    ax.set_xlim([f_min_db, f_max_db])
     ax.set_ylim([-120, 5])
     ax.text(0.02, 0.98, 
             'Perfect periodicity → Minimal side lobes\nEnergy concentrated at single frequency bin', 
@@ -295,7 +300,7 @@ def main():
     for window in window_types:
         f = results['x2'][window]['f']
         mag_db = results['x2'][window]['magnitude_db']
-        mask = f <= f_max
+        mask = (f >= f_min_db) & (f <= f_max_db)
         ax.plot(f[mask], mag_db[mask], label=window.capitalize(), linewidth=1.5, alpha=0.8)
     
     ax.set_xlabel('Frequency (Hz)', fontsize=11)
@@ -304,6 +309,7 @@ def main():
     ax.grid(True, alpha=0.3)
     ax.legend(loc='upper right')
     ax.axvline(f2, color='black', linestyle='--', alpha=0.5, linewidth=1)
+    ax.set_xlim([f_min_db, f_max_db])
     ax.set_ylim([-120, 5])
     ax.text(0.02, 0.98, 
             'Imperfect periodicity → Severe spectral leakage in rectangular window\n' +
