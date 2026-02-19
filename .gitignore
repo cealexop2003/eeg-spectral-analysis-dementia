@@ -38,11 +38,11 @@ ENV/
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Data files (uncomment if needed)
-# *.csv
-# *.edf
-# *.mat
-# data/
+# Data files - exclude raw dataset
+data/raw/
+*.csv
+*.edf
+*.mat
 
 # Results - keep plots but ignore large intermediate files
 # results/

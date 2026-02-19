@@ -13,6 +13,8 @@ Key concepts demonstrated:
 """
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend for saving plots
 import matplotlib.pyplot as plt
 from pathlib import Path
 
@@ -149,7 +151,7 @@ def main():
     # =========================================================================
     # 5. CREATE OUTPUT DIRECTORY
     # =========================================================================
-    output_dir = Path('results/part1')
+    output_dir = Path('results/part1/synthetic_results')
     output_dir.mkdir(parents=True, exist_ok=True)
     print(f"\nOutput directory: {output_dir}")
     
