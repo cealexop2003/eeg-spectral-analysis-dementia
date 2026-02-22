@@ -38,7 +38,7 @@ warnings.filterwarnings('ignore')
 
 # Paths
 DATA_DIR = Path('data/raw/dataset')
-OUTPUT_DIR = Path('results/part2')
+OUTPUT_DIR = Path('results/part2/simple_stats')
 
 # EEG Parameters
 FS = 500  # Sampling frequency (Hz)

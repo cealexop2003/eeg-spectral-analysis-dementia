@@ -1,0 +1,227 @@
+================================================================================
+CLASSIFICATION ANALYSIS COMPREHENSIVE REPORT
+EEG-Based Dementia Detection: CN vs AD vs FTD
+Date: February 22, 2026
+================================================================================
+
+================================================================================
+DATASET INFORMATION
+================================================================================
+
+Total subjects: 88
+Number of classes: 3
+Classes: AD, CN, FTD
+
+Class distribution:
+  AD: 36 (40.9%)
+  CN: 29 (33.0%)
+  FTD: 23 (26.1%)
+
+Number of features: 18
+
+================================================================================
+MODEL CONFIGURATIONS
+================================================================================
+
+Logistic Regression:
+------------------------------------------------------------
+  solver: Default (lbfgs for multiclass)
+  max_iter: 1000
+  random_state: 42
+  preprocessing: StandardScaler
+
+SVM (RBF):
+------------------------------------------------------------
+  kernel: rbf
+  C: 1.0
+  gamma: scale
+  probability: True
+  random_state: 42
+  preprocessing: StandardScaler
+
+Random Forest:
+------------------------------------------------------------
+  n_estimators: 100
+  max_depth: None
+  min_samples_split: 2
+  min_samples_leaf: 1
+  random_state: 42
+  preprocessing: StandardScaler
+
+K-Nearest Neighbors:
+------------------------------------------------------------
+  n_neighbors: 5
+  weights: uniform
+  metric: minkowski
+  p: 2
+  preprocessing: StandardScaler
+
+================================================================================
+CROSS-VALIDATION STRATEGY
+================================================================================
+
+Method: Stratified K-Fold
+Number of folds: 5
+Shuffle: True
+Random state: 42
+Metrics: Accuracy, Balanced Accuracy, Macro F1-Score
+
+================================================================================
+MODEL PERFORMANCE RESULTS
+================================================================================
+
+SVM (RBF):
+------------------------------------------------------------
+  Accuracy:          0.5222 ± 0.0596
+  Balanced Accuracy: 0.4750 ± 0.0600
+  Macro F1-Score:    0.4230 ± 0.0625
+
+  Confusion Matrix (aggregated across 5 folds):
+              Predicted
+                  AD      CN     FTD
+  Actual  AD      26       9       1
+  Actual  CN       9      19       1
+  Actual FTD      16       6       1
+
+  Per-class performance:
+    AD: Precision=0.510, Recall=0.722, F1=0.598
+    CN: Precision=0.559, Recall=0.655, F1=0.603
+    FTD: Precision=0.333, Recall=0.043, F1=0.077
+
+Logistic Regression:
+------------------------------------------------------------
+  Accuracy:          0.4739 ± 0.1451
+  Balanced Accuracy: 0.4560 ± 0.1268
+  Macro F1-Score:    0.4409 ± 0.1222
+
+  Confusion Matrix (aggregated across 5 folds):
+              Predicted
+                  AD      CN     FTD
+  Actual  AD      20      11       5
+  Actual  CN      10      17       2
+  Actual FTD      14       4       5
+
+  Per-class performance:
+    AD: Precision=0.455, Recall=0.556, F1=0.500
+    CN: Precision=0.531, Recall=0.586, F1=0.557
+    FTD: Precision=0.417, Recall=0.217, F1=0.286
+
+K-Nearest Neighbors:
+------------------------------------------------------------
+  Accuracy:          0.4869 ± 0.0896
+  Balanced Accuracy: 0.4552 ± 0.0929
+  Macro F1-Score:    0.4190 ± 0.1002
+
+  Confusion Matrix (aggregated across 5 folds):
+              Predicted
+                  AD      CN     FTD
+  Actual  AD      21      10       5
+  Actual  CN       6      19       4
+  Actual FTD      10      10       3
+
+  Per-class performance:
+    AD: Precision=0.568, Recall=0.583, F1=0.575
+    CN: Precision=0.487, Recall=0.655, F1=0.559
+    FTD: Precision=0.250, Recall=0.130, F1=0.171
+
+Random Forest:
+------------------------------------------------------------
+  Accuracy:          0.4072 ± 0.0888
+  Balanced Accuracy: 0.3853 ± 0.0774
+  Macro F1-Score:    0.3506 ± 0.1024
+
+  Confusion Matrix (aggregated across 5 folds):
+              Predicted
+                  AD      CN     FTD
+  Actual  AD      19      12       5
+  Actual  CN       9      15       5
+  Actual FTD      15       6       2
+
+  Per-class performance:
+    AD: Precision=0.442, Recall=0.528, F1=0.481
+    CN: Precision=0.455, Recall=0.517, F1=0.484
+    FTD: Precision=0.167, Recall=0.087, F1=0.114
+
+================================================================================
+BEST PERFORMING MODEL
+================================================================================
+
+Model: SVM (RBF)
+Balanced Accuracy: 0.4750 ± 0.0600
+Accuracy: 0.5222 ± 0.0596
+Macro F1-Score: 0.4230 ± 0.0625
+
+================================================================================
+BASELINE COMPARISON
+================================================================================
+
+Majority class baseline accuracy: 0.4091
+Best model accuracy: 0.5222
+Improvement over majority baseline: +27.7%
+
+Random guess baseline: 0.3333
+Best model balanced accuracy: 0.4750
+Improvement over random baseline: +42.5%
+
+================================================================================
+MOST PREDICTIVE FEATURES
+================================================================================
+
+Top 10 features (averaged across models):
+   1. F3_theta_rel              0.2799
+   2. F3_alpha_rel              0.2780
+   3. F3_centroid_4_15          0.2486
+   4. F3_delta_rel              0.2187
+   5. Pz_beta_rel               0.1942
+   6. Pz_theta_alpha            0.1842
+   7. Pz_delta_rel              0.1792
+   8. Pz_slowing_ratio          0.1592
+   9. Pz_theta_rel              0.1583
+  10. Pz_delta_alpha            0.1543
+
+Channel comparison:
+  Pz channel avg importance: 0.1405
+  F3 channel avg importance: 0.1633
+  → F3 channel features are more informative overall
+
+================================================================================
+CLASSIFICATION DIFFICULTY ASSESSMENT
+================================================================================
+
+Difficulty level: VERY CHALLENGING - Poor discrimination
+Balanced accuracy: 0.4750
+
+Hardest class to identify: FTD (recall: 0.043)
+
+Interpretation:
+  • The classification task shows poor discrimination
+  • Spectral EEG features contain discriminative information
+  • SVM (RBF) performed best among tested baseline models
+  • FTD class requires special attention (lowest recall)
+
+================================================================================
+RECOMMENDATIONS FOR IMPROVEMENT
+================================================================================
+
+1. Hyperparameter Optimization:
+   • Use GridSearchCV or RandomizedSearchCV
+   • Focus on SVM (C, gamma) and Random Forest (n_estimators, max_depth)
+
+2. Feature Engineering:
+   • Feature selection based on statistical significance
+   • Consider polynomial features or interactions
+   • Add time-domain features
+
+3. Advanced Methods:
+   • Ensemble methods (Voting, Stacking, Gradient Boosting)
+   • Deep learning (CNN, LSTM for raw EEG)
+   • Transfer learning from pre-trained models
+
+4. Data Augmentation:
+   • Collect more data, especially for FTD class
+   • Consider SMOTE or other oversampling techniques
+   • Use data augmentation if working with raw signals
+
+================================================================================
+END OF REPORT
+================================================================================
