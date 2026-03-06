@@ -1,0 +1,39 @@
+================================================================================
+BINARY CLASSIFICATION REPORT: CN vs DEMENTIA
+================================================================================
+
+Dataset:
+  CN (Healthy): 29 subjects (33.0%)
+  Dementia (AD+FTD): 59 subjects (67.0%)
+  Total: 88 subjects
+  Features: 18
+
+Validation: Stratified 5-Fold Cross-Validation
+
+Results:
+--------------------------------------------------------------------------------
+              model  accuracy  accuracy_std  balanced_accuracy  balanced_accuracy_std  f1_score   f1_std  roc_auc  roc_auc_std  sensitivity  specificity
+          SVM (RBF)  0.761438      0.077168           0.695152               0.092390  0.833993 0.056088 0.784091     0.072519     0.898305     0.482759
+K-Nearest Neighbors  0.727451      0.108615           0.678485               0.122642  0.802528 0.079190 0.723813     0.095557     0.830508     0.517241
+Logistic Regression  0.715686      0.051795           0.655152               0.043375  0.793916 0.048713 0.751970     0.062799     0.830508     0.482759
+      Random Forest  0.693464      0.066087           0.625152               0.062463  0.782095 0.053242 0.729268     0.048833     0.830508     0.413793
+
+Best Model:
+  SVM (RBF)
+  Balanced Accuracy: 0.6952 ± 0.0924
+  F1-Score: 0.8340 ± 0.0561
+  ROC AUC: 0.7841 ± 0.0725
+  Sensitivity: 0.8983
+  Specificity: 0.4828
+
+================================================================================
+COMPARISON WITH 3-CLASS CLASSIFICATION
+================================================================================
+
+3-Class (CN vs AD vs FTD):
+  Balanced Accuracy: 0.4750 ± 0.0600
+
+Binary (CN vs Dementia):
+  Balanced Accuracy: 0.6952 ± 0.0924
+
+Improvement: +46.3%
