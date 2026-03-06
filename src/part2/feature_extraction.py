@@ -38,11 +38,11 @@ warnings.filterwarnings('ignore')
 
 # Paths
 DATA_DIR = Path('data/raw/dataset')
-OUTPUT_DIR = Path('results/part2/simple_stats')
+OUTPUT_DIR = Path('results/part2/simple_stats_4ch')
 
 # EEG Parameters
 FS = 500  # Sampling frequency (Hz)
-CHANNELS = ['Pz', 'F3']  # Selected channels for analysis
+CHANNELS = ['Pz', 'F3', 'F4', 'O1']  # Selected channels for analysis (4 channels)
 SEGMENT_DURATION = 15  # seconds
 
 # Filtering Parameters (Butterworth IIR Bandpass)

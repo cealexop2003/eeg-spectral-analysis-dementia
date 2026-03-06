@@ -1,0 +1,36 @@
+================================================================================
+2-CHANNEL vs 4-CHANNEL COMPARISON REPORT
+================================================================================
+
+Setup:
+  2-Channel: Pz (parietal), F3 (frontal left) → 18 features
+  4-Channel: Pz, F3, F4 (frontal right), O1 (occipital) → 36 features
+
+Models tested (with optimized hyperparameters):
+  - Logistic Regression: Best from 2-ch optimization (C=0.01, balanced)
+  - SVM (RBF): Best from 2-ch optimization (C=1, gamma=0.01, balanced)
+  - Random Forest: Best from 2-ch optimization (depth=3, balanced_subsample)
+
+================================================================================
+RESULTS
+================================================================================
+
+              model              channels  balanced_accuracy  bal_acc_std  f1_score  roc_auc  sensitivity  specificity
+Logistic Regression         2-ch (Pz, F3)           0.745152     0.081916  0.800606 0.750303     0.762712     0.724138
+Logistic Regression 4-ch (Pz, F3, F4, O1)           0.716061     0.029712  0.784472 0.773434     0.745763     0.689655
+          SVM (RBF)         2-ch (Pz, F3)           0.736061     0.057796  0.775385 0.769242     0.711864     0.758621
+          SVM (RBF) 4-ch (Pz, F3, F4, O1)           0.732727     0.093913  0.791775 0.799495     0.745763     0.724138
+      Random Forest         2-ch (Pz, F3)           0.682727     0.056599  0.785015 0.741869     0.779661     0.586207
+      Random Forest 4-ch (Pz, F3, F4, O1)           0.699394     0.066886  0.793052 0.781010     0.779661     0.620690
+
+================================================================================
+BEST OVERALL
+================================================================================
+
+Model: Logistic Regression
+Channels: 2-ch (Pz, F3)
+Balanced Accuracy: 0.7452
+F1-Score: 0.8006
+ROC AUC: 0.7503
+Sensitivity: 0.7627
+Specificity: 0.7241

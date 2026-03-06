@@ -198,4 +198,234 @@ Actual FTD:   16   6   1   (4% recall!) ⚠️
 
 ---
 
-**Next Experiment**: Binary classification (CN vs Dementia) to test hypothesis that 2-class problem is more tractable.
+## BINARY CLASSIFICATION (CN vs Dementia)
+
+### Baseline Binary Classification (2-channel: Pz, F3)
+
+**Objective**: Test if merging AD+FTD improves performance
+
+**Setup**:
+- Binary labels: CN=0, Dementia (AD+FTD)=1
+- Class distribution: 29 CN, 59 Dementia
+- Features: Same 18 features from Pz + F3
+- Validation: Stratified 5-Fold CV
+
+**Results**:
+
+| Model | Balanced Acc | F1-Score | ROC AUC | Sensitivity | Specificity |
+|-------|--------------|----------|---------|-------------|-------------|
+| **Logistic Reg** ⭐ | **69.5%** | **79.5%** | **77.5%** | **83.1%** | **55.2%** |
+| SVM (RBF) | 66.7% | 76.7% | 69.3% | 74.6% | 58.6% |
+| Random Forest | 64.4% | 75.5% | 72.4% | 76.3% | 51.7% |
+| KNN | 62.6% | 76.1% | 65.9% | 79.7% | 44.8% |
+
+**Confusion Matrix (Logistic Regression)**:
+```
+           Pred: CN  Dementia
+Actual CN:     16      13      (55.2% specificity)
+Dementia:      10      49      (83.1% sensitivity)
+```
+
+**Key Findings**:
+- **+46% improvement** over 3-class (69.5% vs 47.5%)
+- Good sensitivity (83.1%) for dementia detection
+- Moderate specificity (55.2%) - some false positives
+- **Clinical utility**: Reasonable screening performance
+
+---
+
+### Optimized Binary Classification
+
+**Objective**: Maximize performance through hyperparameter tuning
+
+**Strategy**:
+1. Feature selection comparison (7 feature sets)
+2. Hyperparameter tuning (GridSearchCV)
+3. Class weighting (balanced)
+4. Ensemble voting
+
+**Feature Selection Results**:
+
+| Feature Set | Best Balanced Acc |
+|-------------|------------------|
+| **All 18 features** ⭐ | **69.5%** |
+| Top 7 (FDR-significant) | 63.0% |
+| Top 10 | 67.0% |
+| Pz only (9 features) | 66.5% |
+| F3 only (9 features) | 65.0% |
+| Power ratios only | 62.5% |
+| Simple powers only | 59.0% |
+
+**Finding**: All 18 features outperform feature selection
+
+**Hyperparameter Tuning Results**:
+
+| Model | Best Params | Balanced Acc | Improvement |
+|-------|-------------|--------------|-------------|
+| **Logistic Reg** ⭐ | C=0.01, balanced weight | **74.5%** | **+7.2%** |
+| SVM (RBF) | C=1, γ=0.01, balanced | 73.6% | +10.3% |
+| Random Forest | depth=3, balanced_subsample | 68.3% | +6.0% |
+
+**Final Best Model (Logistic Regression)**:
+- Balanced Accuracy: **74.5%** ± 8.2%
+- F1-Score: 80.1%
+- ROC AUC: 75.0%
+- Sensitivity: 76.3%
+- Specificity: 72.4%
+
+**Feature Importance**:
+Top 3 features: Pz_theta_alpha, Pz_centroid_4_15, F3_theta_alpha
+
+---
+
+## 4-CHANNEL EXPANSION EXPERIMENT
+
+### Feature Extraction (4-channel: Pz, F3, F4, O1)
+
+**Objective**: Test if additional channels improve performance
+
+**Added Channels**:
+- **F4** (frontal-right): For hemispheric asymmetry (F3 vs F4)
+- **O1** (occipital): For posterior alpha rhythm enhancement
+
+**Features Extracted**: 36 total (9 per channel × 4 channels)
+
+**Hypothesis**: 
+- F3 vs F4 asymmetry may differentiate FTD (frontal pathology)
+- O1 alpha may differentiate AD (posterior involvement)
+
+---
+
+### Binary Classification: 2-channel vs 4-channel
+
+**Results**:
+
+| Model | 2-ch Bal Acc | 4-ch Bal Acc | Change |
+|-------|--------------|--------------|---------|
+| **Logistic Reg** | **74.5%** | 71.6% | **-3.9%** ⬇️ |
+| SVM (RBF) | 73.6% | 73.3% | -0.5% ⬇️ |
+| Random Forest | 68.3% | 69.9% | +2.4% ⬆️ |
+
+**Best Overall**: Logistic Regression with 2-ch (Pz, F3) = **74.5%**
+
+**Key Findings**:
+- ❌ **4 channels WORSENED binary classification** (avg -1.3%)
+- Curse of dimensionality: 36 features ÷ 88 samples = 0.41 ratio (overfitting)
+- F4 and O1 added noise, not discriminative signal
+- **Pz + F3 is optimal 2-channel selection** for spectral features
+
+---
+
+### 3-Class Classification: 2-channel vs 4-channel
+
+**Results**:
+
+| Model | 2-ch Bal Acc | 4-ch Bal Acc | Change | FTD Recall (2-ch) | FTD Recall (4-ch) |
+|-------|--------------|--------------|---------|-------------------|-------------------|
+| Logistic Reg | 42.5% | 38.9% | **-8.5%** | 39.1% | 30.4% ⬇️ |
+| **SVM (RBF)** | 44.2% | **46.1%** | **+4.3%** ⭐ | 21.7% | 26.1% ⬆️ |
+| Random Forest | 38.0% | 44.1% | +16.1% | 8.7% | 17.4% ⬆️ |
+
+**Best Overall**: SVM (RBF) with 4-ch = **46.1%** (marginal improvement)
+
+**Key Findings**:
+- ⚠️ **Minimal improvement** for 3-class (+4.3% for SVM)
+- ❌ **FTD recall still catastrophic** (26.1% < 33% random)
+- ❌ Logistic Regression WORSENED with 4 channels
+- **Overall: 4 channels DON'T solve AD vs FTD discrimination**
+
+---
+
+## UPDATED CONCLUSIONS
+
+### Performance Summary
+
+| Task | Best Model | Best Accuracy | Status |
+|------|-----------|---------------|---------|
+| **Binary (CN vs Dementia)** | Logistic Reg (2-ch) | **74.5%** | ✅ Reasonable |
+| **3-Class (CN/AD/FTD)** | SVM (4-ch) | **46.1%** | ❌ Poor |
+
+### What Worked ✅
+1. **Binary classification**: 74.5% is clinically reasonable for spectral-only features
+2. **Hyperparameter tuning**: +7.2% improvement (69.5% → 74.5%)
+3. **Class weighting**: Critical for imbalanced datasets (29 CN vs 59 Dementia)
+4. **2-channel selection (Pz + F3)**: Optimal for spectral features
+5. **All 18 features**: Outperformed feature selection (69.5% vs 63%)
+
+### What Didn't Work ❌
+1. **4-channel expansion**: Worsened binary (-3.9%), minimal 3-class improvement (+4.3%)
+2. **AD vs FTD discrimination**: Remains unsolved (post-hoc p=0.51)
+3. **FTD detection**: 26.1% recall (worse than random)
+4. **Feature selection**: Top 7 FDR-significant underperformed all 18
+5. **Curse of dimensionality**: 36 features too many for N=88
+
+### Why 4-Channels Failed
+1. **No new discriminative information**: F4, O1 spectral patterns similar to F3, Pz
+2. **Overfitting**: 36 features ÷ 88 samples = high feature-to-sample ratio
+3. **Added noise**: More features dilute signal without adding value
+4. **Pz + F3 already optimal**: Cover parietal slowing (Pz) + frontal dysfunction (F3)
+
+### Performance Barriers (Why can't reach 90%)
+1. **Spectral features limited**: Power-based features can't distinguish AD vs FTD
+2. **Small sample size**: N=88 insufficient (need N≥200)
+3. **Low SNR**: PCA shows group signal < individual noise (PC1 51% vs PC2 17%)
+4. **Homogeneous dementia EEG**: Both AD and FTD show theta/alpha slowing
+
+---
+
+## REALISTIC NEXT STEPS (Without Deep Learning or More Data)
+
+### Option 1: Connectivity Features ⭐ RECOMMENDED
+**What**: Coherence / Phase Locking Value (PLV) between channel pairs
+
+**Why**: Captures "communication" between brain regions
+- **AD**: Long-range connectivity disruption (F3↔Pz coherence ↓↓)
+- **FTD**: Frontal local connectivity disruption (F3↔F4 coherence ↓↓)
+
+**Implementation**:
+- 4 channels → 6 pairs (F3-F4, F3-Pz, F4-Pz, F3-O1, F4-O1, Pz-O1)
+- 3 bands (theta, alpha, beta) → 18 connectivity features
+- Total: 36 spectral + 18 connectivity = **54 features**
+
+**Expected Improvement**:
+- Binary: 74.5% → **78-82%** (realistic)
+- 3-class: 46.1% → **50-55%** (realistic)
+
+### Option 2: Complexity Features
+- Sample entropy, permutation entropy
+- Fractal dimension, Hurst exponent
+- 4-8 additional features
+
+### Option 3: Advanced Spectral
+- Individual alpha peak analysis
+- Theta/beta ratio
+- Spectral asymmetry indices
+
+---
+
+## FILES GENERATED (Complete List)
+
+**Part 1**:
+- `results/part1/synthetic_results/` (spectral leakage plots)
+- `results/part1/eeg_real_results/` (19 plots)
+
+**Part 2 - Simple Stats**:
+- `results/part2/simple_stats/features.csv` (88×20, 2-channel)
+- `results/part2/simple_stats_4ch/features.csv` (88×38, 4-channel)
+- Boxplots, correlation heatmaps, violin plots
+
+**Part 2 - Advanced Stats**:
+- Statistical test results (CSVs)
+- PCA analysis
+- Effect size plots
+
+**Part 2 - Classification**:
+- `results/part2/classification_results.csv` (3-class, 2-ch)
+- `results/part2/binary_classification/` (binary, 2-ch baseline)
+- `results/part2/optimized_binary/` (binary, 2-ch tuned)
+- `results/part2/4channel_comparison/` (2-ch vs 4-ch, binary + 3-class)
+
+---
+
+**Current Status**: 74.5% binary classification with 2-channel spectral features.  
+**Next Experiment**: Connectivity features (coherence/PLV) to improve both binary and 3-class performance.
