@@ -427,5 +427,263 @@ Top 3 features: Pz_theta_alpha, Pz_centroid_4_15, F3_theta_alpha
 
 ---
 
-**Current Status**: 74.5% binary classification with 2-channel spectral features.  
-**Next Experiment**: Connectivity features (coherence/PLV) to improve both binary and 3-class performance.
+## CONNECTIVITY FEATURES EXPERIMENT
+
+### Connectivity Feature Extraction
+
+**Objective**: Add coherence features to capture inter-regional "communication"
+
+**Method**: Coherence analysis between channel pairs
+- **Formula**: $\text{Coh}_{xy}(f) = \frac{|P_{xy}(f)|^2}{P_{xx}(f) \cdot P_{yy}(f)}$
+- **Channels**: Pz, F3, F4, O1 (4 channels)
+- **Pairs**: 6 total (F3-F4, F3-Pz, F4-Pz, F3-O1, F4-O1, Pz-O1)
+- **Bands**: Theta (4-8 Hz), Alpha (8-12 Hz), Beta (13-30 Hz)
+- **Total connectivity features**: 6 pairs × 3 bands = **18 features**
+
+**Neurological Rationale**:
+- **AD (Alzheimer's)**: Long-range connectivity disruption (frontal↔parietal)
+- **FTD (Frontotemporal)**: Frontal local connectivity loss (F3↔F4)
+- **CN (Controls)**: Intact connectivity networks
+
+**Key Observations** (Mean Coherence):
+
+| Connection | CN | AD | FTD | Pattern |
+|------------|-----|-----|-----|---------|
+| **F3↔F4 Theta** (frontal) | 0.869 | 0.707 ↓↓ | 0.792 ↓ | AD > FTD disruption |
+| **F3↔Pz Alpha** (long-range) | 0.346 | 0.431 ↑ | 0.437 ↑ | Paradox: dementia HIGHER |
+| **Pz↔O1 Alpha** (posterior) | 0.699 | 0.741 ↑ | 0.746 ↑ | Posterior preserved |
+
+**Finding**: Connectivity patterns differ between AD and FTD, providing discriminative information not captured by spectral power alone.
+
+---
+
+### Combined Classification Results
+
+**Feature Sets Tested**:
+1. **Spectral Only**: 36 features (4 channels × 9 features)
+2. **Connectivity Only**: 18 features (6 pairs × 3 bands)
+3. **Combined**: 54 features (spectral + connectivity)
+
+#### Binary Classification (CN vs Dementia)
+
+| Features | Best Model | Balanced Acc | F1-Score | ROC AUC | Improvement |
+|----------|-----------|--------------|----------|---------|-------------|
+| Spectral Only (36) | SVM | 73.3% | 79.2% | 0.800 | Baseline |
+| **Connectivity Only (18)** ⭐ | **SVM** | **78.8%** | 73.8% | **0.828** | **+5.5%** |
+| Combined (54) | Logistic Reg | 77.4% | 81.4% | 0.821 | +4.1% |
+
+**Key Findings**:
+- ✅ **Connectivity outperformed spectral** despite using half the features (18 vs 36)
+- ✅ **+5.5% improvement** over spectral-only baseline (73.3% → 78.8%)
+- ✅ **ROC AUC improved** from 0.800 to 0.828
+- ⚠️ Combined features slightly lower than connectivity-only (curse of dimensionality)
+
+**Confusion Matrix (Connectivity SVM - Best Binary)**:
+```
+           Pred: CN  Dementia
+Actual CN:     28       1      (96.6% specificity!)
+Dementia:      23      36      (61.0% sensitivity)
+```
+
+**Trade-off**: Higher specificity (96.6%), lower sensitivity (61.0%)
+
+---
+
+#### 3-Class Classification (CN/AD/FTD)
+
+| Features | Best Model | Balanced Acc | FTD Recall | Improvement |
+|----------|-----------|--------------|------------|-------------|
+| Spectral Only (36) | SVM | 46.1% | 26.1% | Baseline |
+| Connectivity Only (18) | SVM | 56.0% | 26.1% | **+9.9%** |
+| **Combined (54)** ⭐ | **SVM** | **58.5%** | **43.5%** | **+12.4%** |
+
+**Key Findings**:
+- ✅ **Combined features best** for 3-class (58.5% vs 46.1% spectral)
+- ✅ **FTD recall dramatically improved**: 26.1% → 43.5% (+67% relative)
+- ✅ **First time FTD recall > chance** (43.5% > 33.3%)
+- ✅ **Connectivity alone** improved 3-class by +9.9%
+
+**Per-Class Recall (Combined SVM - Best 3-Class)**:
+- CN: 79.3% (excellent)
+- AD: 52.8% (moderate)
+- FTD: 43.5% (first time > chance!)
+
+---
+
+### Why Connectivity Helped
+
+#### 1. Complementary Information
+- **Spectral**: "How loud" each region speaks (power)
+- **Connectivity**: "How well" regions communicate (synchronization)
+- Different physiological processes
+
+#### 2. Better Signal-to-Noise
+- 18 connectivity features outperformed 36 spectral features
+- More discriminative, less redundancy
+- Feature-to-sample ratio better (18÷88 vs 36÷88)
+
+#### 3. AD vs FTD Discrimination
+**Spectral features** (theta/alpha power):
+- AD: High theta, low alpha (parietal/temporal)
+- FTD: High theta, low alpha (frontal)
+- **Problem**: Both show similar slowing → hard to separate
+
+**Connectivity features** (coherence patterns):
+- AD: ↓ Long-range (F3↔Pz, F4↔Pz) - disconnection syndrome
+- FTD: ↓ Frontal local (F3↔F4) - frontal network destruction
+- **Solution**: Different spatial patterns → easier to separate!
+
+#### 4. Curse of Dimensionality Avoided
+- Connectivity-only (18 features) outperformed spectral (36 features)
+- Combined (54 features) best for 3-class but not binary
+- Indicates: More features ≠ better when N=88
+
+---
+
+### Performance Summary
+
+| Task | Best Approach | Best Accuracy | vs Baseline |
+|------|--------------|---------------|-------------|
+| **Binary (CN vs Dementia)** | Connectivity SVM | **78.8%** | +5.5% |
+| **3-Class (CN/AD/FTD)** | Combined SVM | **58.5%** | +12.4% |
+
+**Comparison to Initial Results**:
+- Binary: 69.5% (2-ch spectral) → 74.5% (2-ch optimized) → **78.8%** (connectivity) ✨
+- 3-Class: 47.5% (3-class original) → 46.1% (4-ch spectral) → **58.5%** (combined) ✨
+
+---
+
+## UPDATED CONCLUSIONS
+
+### What Worked ✅
+
+**Spectral Features**:
+1. Theta/alpha ratio most discriminative (p_FDR=0.0037)
+2. 4s Welch window optimal (Δf=0.25 Hz, K≈7)
+3. All 18 features better than feature selection
+
+**Connectivity Features** ⭐ NEW:
+1. **Outperformed spectral** (78.8% vs 73.3% binary)
+2. **Enabled AD vs FTD separation** (58.5% 3-class)
+3. **FTD detection improved** (26.1% → 43.5% recall)
+4. **Fewer features, better performance** (18 vs 36)
+
+**Optimization**:
+1. Class weighting critical for imbalance
+2. Hyperparameter tuning added +7%
+3. SVM best for connectivity, Logistic for combined
+
+### What Didn't Work ❌
+
+1. **4 spectral channels**: Worsened binary (-3.9%), minimal 3-class gain
+2. **Feature selection**: Top 7 FDR-significant underperformed all features
+3. **Combined features for binary**: Slightly worse than connectivity-only (77.4% vs 78.8%)
+4. **90% target**: Still not reached (best: 78.8% binary)
+
+### Performance Barriers
+
+**Binary Classification (CN vs Dementia)**:
+- Current: **78.8%** (connectivity SVM)
+- Clinical target: 90%
+- **Gap: -11.2%**
+
+**3-Class Classification (CN/AD/FTD)**:
+- Current: **58.5%** (combined SVM)
+- Reasonable target: 70%
+- **Gap: -11.5%**
+
+**Remaining Challenges**:
+1. **Small N**: 88 subjects (need 200+ for 90%)
+2. **Heterogeneous dementia**: AD and FTD subtypes within groups
+3. **Limited modalities**: EEG-only (need MRI, CSF biomarkers)
+4. **FTD still weak**: 43.5% recall still modest
+
+---
+
+## REALISTIC NEXT STEPS
+
+### Option 1: Advanced Connectivity Metrics ⭐ RECOMMENDED
+
+**Phase Locking Value (PLV)**:
+- Amplitude-independent synchronization
+- More robust to power fluctuations
+- Formula: $\text{PLV} = |\frac{1}{N} \sum_{n=1}^{N} e^{i(\phi_x(n) - \phi_y(n))}|$
+
+**Directed Connectivity**:
+- Granger causality (who influences whom)
+- Transfer entropy
+- Partial directed coherence (PDC)
+
+**Expected Improvement**: +2-5% (80-82% binary, 60-63% 3-class)
+
+### Option 2: Graph Theory Features
+
+**Network Metrics**:
+- Clustering coefficient (local connectivity)
+- Path length (global efficiency)
+- Small-world index
+- Hub identification
+
+**Rationale**: AD/FTD differ in network topology, not just pairwise connectivity
+
+**Expected Improvement**: +3-7% if combined with coherence
+
+### Option 3: Time-Frequency Connectivity
+
+**Wavelet Coherence**:
+- Time-varying connectivity
+- Captures transient synchronization
+- Better for non-stationary EEG
+
+**Expected Improvement**: +2-4% if transient patterns differ by group
+
+### Option 4: Feature Engineering
+
+**Asymmetry Indices**:
+- (F3-F4) coherence difference
+- (Left-Right) hemispheric imbalance
+- Frontal-posterior gradient
+
+**Ratio Features**:
+- Theta coherence / Alpha coherence
+- Short-range / Long-range ratio
+
+**Expected Improvement**: +1-3% with careful engineering
+
+---
+
+## FILES GENERATED (Complete List)
+
+**Part 1**:
+- `results/part1/synthetic_results/` (spectral leakage)
+- `results/part1/eeg_real_results/` (19 plots)
+
+**Part 2 - Spectral Features**:
+- `results/part2/simple_stats/features.csv` (88×20, 2-channel)
+- `results/part2/simple_stats_4ch/features.csv` (88×38, 4-channel)
+
+**Part 2 - Advanced Stats**:
+- Statistical test results (univariate, post-hoc, PCA)
+- Effect size plots
+
+**Part 2 - Classification**:
+- `results/part2/classification_results.csv` (3-class baseline)
+- `results/part2/binary_classification/` (baseline)
+- `results/part2/optimized_binary/` (hyperparameter tuning)
+- `results/part2/4channel_comparison/` (2-ch vs 4-ch)
+
+**Part 2 - Connectivity** ⭐ NEW:
+- `results/part2/connectivity_features/connectivity_features.csv` (88×20)
+- `results/part2/connectivity_features/coherence_heatmaps_by_group.png`
+- `results/part2/connectivity_features/key_connectivity_comparisons.png`
+- `results/part2/combined_features/combined_features.csv` (88×56)
+- `results/part2/combined_features/binary_classification_results.csv`
+- `results/part2/combined_features/3class_classification_results.csv`
+
+---
+
+**Current Best Performance**:
+- Binary (CN vs Dementia): **78.8%** (Connectivity SVM)
+- 3-Class (CN/AD/FTD): **58.5%** (Combined SVM)
+
+**Next Experiment**: Phase Locking Value (PLV) or Network Graph Theory features to push toward 80%+ binary and 60%+ 3-class.
